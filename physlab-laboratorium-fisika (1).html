@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhysLab Interactive — Laboratorium Fisika Virtual (Offline Standalone)</title>
+<style>
+:root {
+  --bg: #0a1020;
+  --panel: #121c32;
+  --panel2: #172541;
+  --line: #263957;
+  --text: #edf4ff;
+  --muted: #a7b7d0;
+  --cyan: #5ee7f7;
+  --blue: #7395ff;
+  --green: #8af0bf;
+  --amber: #fbbf24;
+  --rose: #f43f5e;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: radial-gradient(circle at 80% 0%, #182b4c 0%, #0a1020 45%);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+button, input, select, textarea { font: inherit; }
+button {
+  cursor: pointer;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 14px;
+  color: var(--text);
+  background: #1b2a46;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all .18s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+button:hover { border-color: var(--cyan); transform: translateY(-1px); }
+button.primary {
+  background: linear-gradient(135deg, #06b6d4, #3b82f6);
+  border: none;
+  color: #071324;
+  font-weight: 700;
+}
+button.primary:hover { filter: brightness(1.1); }
+button.success {
+  background: #059669;
+  border: none;
+  color: white;
+}
+button.success:hover { background: #10b981; }
+button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+header {
+  border-bottom: 1px solid var(--line);
+  background: rgba(10, 16, 32, 0.95);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 12px clamp(16px, 4vw, 36px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--cyan), #7b83ff);
+  display: grid;
+  place-items: center;
+  color: #081426;
+  font-size: 20px;
+  font-weight: 900;
+  box-shadow: 0 4px 18px rgba(94, 231, 247, 0.35);
+}
+.brand h1 { font-size: 18px; margin: 0; }
+.brand p { font-size: 11px; color: var(--muted); margin: 2px 0 0; }
+
+main {
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px clamp(12px, 3vw, 32px) 40px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid rgba(38, 57, 87, 0.5);
+  padding-bottom: 16px;
+}
+.eyebrow { color: var(--cyan); font-size: 11px; font-weight: 800; letter-spacing: 2px; }
+.intro h2 { font-size: clamp(24px, 3.5vw, 36px); margin: 6px 0; font-weight: 900; }
+.intro p { color: var(--muted); font-size: 13px; max-width: 650px; line-height: 1.5; }
+
+.module-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+}
+.mod-btn {
+  background: #111d33;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mod-btn .icon { font-size: 20px; }
+.mod-btn .name { font-size: 12px; font-weight: 700; color: #fff; }
+.mod-btn.active {
+  background: linear-gradient(145deg, #182e50, #101c31);
+  border-color: var(--cyan);
+  box-shadow: 0 4px 16px rgba(94, 231, 247, 0.2);
+}
+.mod-btn.active .name { color: var(--cyan); }
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(310px, 0.9fr);
+  gap: 18px;
+}
+@media (max-width: 950px) { .layout { grid-template-columns: 1fr; } }
+
+.panel {
+  background: linear-gradient(180deg, rgba(20, 33, 58, 0.9), rgba(16, 25, 43, 0.92));
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+}
+.panel-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(23, 37, 65, 0.7);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.panel-head h3 { font-size: 14px; margin: 0; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+
+.viewport {
+  height: 380px;
+  position: relative;
+  background: radial-gradient(ellipse at 50% 40%, #142748 0%, #0d1930 45%, #070e1c 85%);
+  overflow: hidden;
+}
+.viewport svg, .viewport canvas { width: 100%; height: 100%; display: block; }
+.panel-controls {
+  padding: 12px 16px;
+  border-top: 1px solid var(--line);
+  background: #111d33;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.right-stack { display: flex; flex-direction: column; gap: 16px; }
+.content { padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field-top { display: flex; justify-content: space-between; font-size: 12px; }
+.field-top label { color: #dce8ff; font-weight: 500; }
+.field-top .val { color: var(--cyan); font-weight: 700; font-family: monospace; }
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--cyan);
+  cursor: pointer;
+}
+select, input[type="text"], input[type="number"] {
+  width: 100%;
+  background: #0b1528;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 8px 12px;
+  color: #fff;
+  font-size: 12px;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.metric-box {
+  background: #0b1528;
+  border: 1px solid #233653;
+  border-radius: 12px;
+  padding: 12px;
+}
+.metric-box .label { font-size: 11px; color: var(--muted); }
+.metric-box .num { font-size: 20px; font-weight: 800; color: #fff; margin-top: 4px; }
+.metric-box .num span { font-size: 11px; color: var(--cyan); font-weight: 500; margin-left: 2px; }
+
+.callout {
+  background: #162a48;
+  border: 1px solid #344d73;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #d7e7ff;
+}
+.formula {
+  background: #0d1a2d;
+  border: 1px solid #253f65;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-family: monospace;
+  color: var(--cyan);
+  font-size: 13px;
+  margin: 6px 0;
+  text-align: center;
+}
+
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th, td { padding: 9px 12px; border-bottom: 1px solid var(--line); text-align: left; }
+th { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+
+.subtabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.subtab-btn {
+  padding: 6px 12px;
+  font-size: 11px;
+  background: #15233c;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.subtab-btn.active {
+  background: var(--cyan);
+  color: #071324;
+  border-color: var(--cyan);
+  font-weight: 700;
+}
+
+footer {
+  text-align: center;
+  padding: 20px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+  color: #7f92b0;
+  background: #080d1a;
+}
+</style>
+<script src="/_aistudio-iframe.js?v=6634132a"></script></head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo">Φ</div>
+    <div>
+      <h1>PhysLab <span style="color:var(--cyan)">Interactive</span></h1>
+      <p>Laboratorium Fisika Virtual (File Standalone Lengkap)</p>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <button id="soundToggle" onclick="toggleSound()">🔊 Suara Aktif</button>
+    <button onclick="downloadSelf()" class="primary">⬇ Simpan File HTML Ini</button>
+  </div>
+</header>
+
+<main>
+  <section class="intro">
+    <div>
+      <div class="eyebrow">LABORATORIUM FISIKA OFFLINE LENGKAP</div>
+      <h2>Eksperimen Fisika <span style="color:var(--cyan)">Interaktif 100% Berjalan.</span></h2>
+      <p>Pilih dari 8 modul eksperimen: ubah parameter fisis, jalankan animasi real-time, catat data pengamatan, dan cetak laporan praktikum resmi.</p>
+    </div>
+    <div style="font-size:12px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:#13223d;">
+      Status: <strong style="color:var(--green)">● Siap Offline</strong>
+    </div>
+  </section>
+
+  <!-- 8 Modules Grid Switcher -->
+  <div class="module-nav">
+    <button class="mod-btn active" onclick="switchModule('pendulum', this)"><span class="icon">🪀</span><span class="name">Bandul Sederhana</span></button>
+    <button class="mod-btn" onclick="switchModule('projectile', this)"><span class="icon">🚀</span><span class="name">Gerak Proyektil</span></button>
+    <button class="mod-btn" onclick="switchModule('spring', this)"><span class="icon">🌀</span><span class="name">Osilasi Pegas</span></button>
+    <button class="mod-btn" onclick="switchModule('wave', this)"><span class="icon">〰️</span><span class="name">Gelombang Tali</span></button>
+    <button class="mod-btn" onclick="switchModule('ohm', this)"><span class="icon">⚡</span><span class="name">Hukum Ohm DC</span></button>
+    <button class="mod-btn" onclick="switchModule('optics', this)"><span class="icon">🔭</span><span class="name">Pembiasan Snellius</span></button>
+    <button class="mod-btn" onclick="switchModule('calorimeter', this)"><span class="icon">🌡️</span><span class="name">Kalorimeter Panas</span></button>
+    <button class="mod-btn" onclick="switchModule('caliper', this)"><span class="icon">📏</span><span class="name">Jangka Sorong</span></button>
+  </div>
+
+  <!-- Main Workspace -->
+  <div class="layout">
+    <div class="panel">
+      <div class="panel-head">
+        <h3 id="panelTitle">🪀 Ruang Eksperimen Bandul Sederhana</h3>
+        <span id="subLabel" style="font-size:11px;color:var(--muted)">Harmonik Sederhana</span>
+      </div>
+
+      <div class="viewport" id="viewport">
+        <!-- Dynamic Canvas or SVG Injected Here -->
+      </div>
+
+      <div class="panel-controls">
+        <div style="display:flex;gap:8px;" id="actionButtons">
+          <button class="primary" id="startBtn" onclick="onStart()">▶ Mulai</button>
+          <button id="pauseBtn" onclick="onPause()" disabled>⏸ Jeda</button>
+          <button onclick="onReset()">↺ Reset</button>
+        </div>
+        <button class="success" onclick="recordData()">＋ Catat ke Buku Data</button>
+      </div>
+    </div>
+
+    <!-- Parameter & Metrics Sidebar -->
+    <div class="right-stack">
+      <div class="panel">
+        <div class="panel-head"><h3>⚙️ Pengaturan Parameter</h3></div>
+        <div class="content" id="sidebarControls">
+          <!-- Injected Controls -->
+        </div>
+      </div>
+
+      <!-- Live Observations Table -->
+      <div class="panel">
+        <div class="panel-head">
+          <h3>📋 Buku Data Pengamatan</h3>
+          <button onclick="clearData()" style="padding:4px 8px;font-size:10px;">Hapus</button>
+        </div>
+        <div style="max-height:180px;overflow-y:auto;">
+          <table>
+            <thead>
+              <tr><th>No</th><th>Variabel X</th><th>Variabel Y</th></tr>
+            </thead>
+            <tbody id="dataTableBody">
+              <tr><td colspan="3" style="text-align:center;color:var(--muted);padding:18px;">Belum ada data pengamatan tercatat.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="padding:10px 14px;display:flex;gap:8px;border-top:1px solid var(--line);">
+          <button onclick="exportCSV()" style="font-size:11px;">⬇ Unduh CSV</button>
+          <button onclick="printReport()" style="font-size:11px;">🖨 Cetak Laporan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  PhysLab Interactive Offline Standalone · Laboratorium Fisika Mandiri Lengkap · Bebas Digunakan Tanpa Internet
+</footer>
+
+<script>
+// --- Web Audio Synthesizer ---
+let audioCtx = null;
+let soundEnabled = true;
+
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function playBeep(freq = 600, duration = 0.08) {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  } catch(e){}
+}
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  document.getElementById('soundToggle').textContent = soundEnabled ? '🔊 Suara Aktif' : '🔇 Suara Nonaktif';
+}
+
+// --- Data Table State ---
+let observations = [];
+
+function recordData() {
+  playBeep(880, 0.15);
+  let xName = '', xVal = 0, yName = '', yVal = '';
+  
+  if (currentMod === 'pendulum') {
+    xName = 'Panjang L: ' + pendulum.L.toFixed(2) + 'm';
+    yName = 'Periode T: ' + (2 * Math.PI * Math.sqrt(pendulum.L / pendulum.g)).toFixed(3) + 's';
+  } else if (currentMod === 'projectile') {
+    const aRad = projectile.angle * Math.PI / 180;
+    const range = (projectile.v * projectile.v * Math.sin(2 * aRad)) / 9.81;
+    xName = 'Sudut θ: ' + projectile.angle + '°';
+    yName = 'Jarak X: ' + range.toFixed(1) + 'm';
+  } else if (currentMod === 'spring') {
+    const T = 2 * Math.PI * Math.sqrt(spring.m / spring.k);
+    xName = 'Massa m: ' + spring.m + 'kg';
+    yName = 'Periode T: ' + T.toFixed(2) + 's';
+  } else if (currentMod === 'wave') {
+    xName = 'Frekuensi: ' + wave.f + 'Hz';
+    yName = 'Panjang λ: ' + (wave.v / wave.f).toFixed(1) + 'px';
+  } else if (currentMod === 'ohm') {
+    xName = 'Tegangan: ' + ohm.V + 'V';
+    yName = 'Arus: ' + ((ohm.V / ohm.R) * 1000).toFixed(1) + 'mA';
+  } else if (currentMod === 'optics') {
+    const theta2 = (Math.asin(Math.min(1, (1.0 / optics.n2) * Math.sin(optics.theta1 * Math.PI / 180))) * 180 / Math.PI).toFixed(1);
+    xName = 'Sudut Datang: ' + optics.theta1 + '°';
+    yName = 'Sudut Bias: ' + theta2 + '°';
+  } else if (currentMod === 'calorimeter') {
+    const Tf = ((cal.mm * cal.cm * cal.tm + cal.mw * 4184 * cal.tw) / (cal.mm * cal.cm + cal.mw * 4184)).toFixed(1);
+    xName = 'Massa Logam: ' + (cal.mm * 1000) + 'g';
+    yName = 'Suhu Akhir: ' + Tf + '°C';
+  } else if (currentMod === 'caliper') {
+    xName = 'Pengukuran';
+    yName = caliper.val.toFixed(2) + ' mm';
+  }
+
+  observations.push({ no: observations.length + 1, x: xName, y: yName });
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('dataTableBody');
+  if (!observations.length) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:18px;">Belum ada data pengamatan tercatat.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = observations.map(r => `
+    <tr>
+      <td>${r.no}</td>
+      <td style="color:#5ee7f7;">${r.x}</td>
+      <td style="color:#8af0bf;font-weight:bold;">${r.y}</td>
+    </tr>
+  `).join('');
+}
+
+function clearData() {
+  observations = [];
+  renderTable();
+}
+
+function exportCSV() {
+  if (!observations.length) { alert('Catat minimal 1 data!'); return; }
+  let csv = 'No,Variabel Bebas (X),Variabel Terikat (Y)\n' + observations.map(r => `${r.no},"${r.x}","${r.y}"`).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'data-praktikum-fisika.csv';
+  a.click();
+}
+
+function printReport() {
+  window.print();
+}
+
+// Download self standalone file
+function downloadSelf() {
+  const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'physlab-laboratorium-fisika.html';
+  a.click();
+}
+
+// --- Module Management ---
+let currentMod = 'pendulum';
+let running = false;
+let animId = null;
+
+// Physics states
+let pendulum = { L: 0.8, angle: 25, g: 9.81, time: 0, theta: 25 * Math.PI / 180, omega: 0 };
+let projectile = { angle: 45, v: 24, g: 9.81, t: 0, x: 0, y: 0, trail: [] };
+let spring = { k: 50, m: 0.5, amp: 0.2, x: 0.2, v: 0, t: 0 };
+let wave = { f: 1.5, amp: 35, v: 120, t: 0 };
+let ohm = { V: 12, R: 100, on: true };
+let optics = { theta1: 45, n2: 1.33 };
+let cal = { mm: 0.15, cm: 386, tm: 95, mw: 0.25, tw: 25, t: 0, currentT: 25 };
+let caliper = { val: 18.35 };
+
+function switchModule(mod, btn) {
+  playBeep(500, 0.05);
+  onReset();
+  currentMod = mod;
+  document.querySelectorAll('.mod-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  initModuleUI();
+}
+
+function initModuleUI() {
+  const vp = document.getElementById('viewport');
+  const sb = document.getElementById('sidebarControls');
+  const title = document.getElementById('panelTitle');
+  const sub = document.getElementById('subLabel');
+
+  if (currentMod === 'pendulum') {
+    title.innerHTML = '🪀 Ruang Eksperimen Bandul Sederhana';
+    sub.textContent = 'Harmonik Sederhana';
+    vp.innerHTML = `
+      <svg viewBox="0 0 700 380" id="pendulumSvg">
+        <line x1="240" y1="340" x2="460" y2="340" stroke="#8faecc" stroke-width="8" stroke-linecap="round"/>
+        <line x1="350" y1="70" x2="350" y2="280" stroke="#6884a8" stroke-dasharray="4 4" opacity="0.3"/>
+        <circle cx="350" cy="70" r="8" fill="#d7e8fa" stroke="#587797" stroke-width="2"/>
+        <line id="pendString" x1="350" y1="70" x2="350" y2="260" stroke="#d4e8fa" stroke-width="2.5"/>
+        <circle id="pendBob" cx="350" cy="260" r="22" fill="#5ee7f7" stroke="#b6f8ff" stroke-width="2"/>
+      </svg>
+    `;
+    sb.innerHTML = `
+      <div class="field">
+        <div class="field-top"><label>Panjang Tali (L)</label><span class="val" id="pLVal">0.80 m</span></div>
+        <input type="range" min="0.2" max="2.0" step="0.05" value="0.8" oninput="pendulum.L=parseFloat(this.value);document.getElementById('pLVal').textContent=pendulum.L.toFixed(2)+' m';updatePendulum();">
+      </div>
+      <div class="field">
+        <div class="field-top"><label>Sudut Awal (θ₀)</label><span class="val" id="pAVal">25°</span></div>
+        <input type="range" min="5" max="60" step="1" value="25" oninput="pendulum.angle=parseInt(this.value);document.getElementById('pAVal').textContent=pendulum.angle+'°';pendulum.theta=pendulum.angle*Math.PI/180;updatePendulum();">
+      </div>
+      <div class="metrics">
+        <div class="metric-box"><div class="label">Periode Teori (T)</div><div class="num" id="pPeriod">1.79<span>s</span></div></div>
+        <div class="metric-box"><div class="label">Waktu Berjalan</div><div class="num" id="pTime">0.00<span>s</span></div></div>
+      </div>
+      <div class="callout">Persamaan Teori: <strong>T = 2π √(L / g)</strong></div>
+    `;
+    updatePendulum();
+  } else if (currentMod === 'projectile') {
+    title.innerHTML = '🚀 Simulasi Gerak Proyektil / Peluru';
+    sub.textContent = 'Kinematika Parabola';
+    vp.innerHTML = '<svg viewBox="0 0 700 380" id="projSvg"><rect x="0" y="340" width="700" height="40" fill="#0c1726"/><line x1="0" y1="340" x2="700" y2="340" stroke="#486581" stroke-width="3"/><path id="projTrail" fill="none" stroke="#5ee7f7" stroke-width="2.5"/><circle id="projBall" cx="50" cy="340" r="7" fill="#fbbf24"/></svg>';
+    sb.innerHTML = `
+      <div class="field">
+        <div class="field-top"><label>Sudut Elevasi</label><span class="val" id="prAVal">45°</span></div>
+        <input type="range" min="15" max="85" step="1" value="45" oninput="projectile.angle=parseInt(this.value);document.getElementById('prAVal').textContent=projectile.angle+'°';">
+      </div>
+      <div class="field">
+        <div class="field-top"><label>Kecepatan Awal (v₀)</label><span class="val" id="prVVal">24 m/s</span></div>
+        <input type="range" min="10" max="40" step="1" value="24" oninput="projectile.v=parseInt(this.value);document.getElementById('prVVal').textContent=projectile.v+' m/s';">
+      </div>
+      <div class="metrics">
+        <div class="metric-box"><div class="label">Jarak Jangkauan (X)</div><div class="num" id="prRange">58.7<span>m</span></div></div>
+        <div class="metric-box"><div class="label">Waktu Terbang</div><div class="num" id="prFlight">3.46<span>s</span></div></div>
+      </div>
+      <div class="callout">Persamaan: <strong>X_max = (v₀² sin 2θ) / g</strong></div>
+    `;
+  } else if (currentMod === 'spring') {
+    title.innerHTML = '🌀 Osilasi Pegas (Hukum Hooke)';
+    sub.textContent = 'Harmonik Elastik';
+    vp.innerHTML = '<svg viewBox="0 0 700 380" id="springSvg"><rect x="250" y="20" width="200" height="20" fill="#64748b"/><line x1="200" y1="200" x2="500" y2="200" stroke="#38bdf8" stroke-dasharray="3 3"/><path id="springCoil" fill="none" stroke="#94a3b8" stroke-width="4"/><rect id="springBlock" x="320" y="200" width="60" height="40" rx="4" fill="#38bdf8"/></svg>';
+    sb.innerHTML = `
+      <div class="field">
+        <div class="field-top"><label>Konstanta Pegas (k)</label><span class="val" id="spKVal">50 N/m</span></div>
+        <input type="range" min="20" max="150" step="5" value="50" oninput="spring.k=parseInt(this.value);document.getElementById('spKVal').textContent=spring.k+' N/m';">
+      </div>
+      <div class="field">
+        <div class="field-top"><label>Massa Beban (m)</label><span class="val" id="spMVal">0.50 kg</span></div>
+        <input type="range" min="0.1" max="2.0" step="0.05" value="0.5" oninput="spring.m=parseFloat(this.value);document.getElementById('spMVal').textContent=spring.m.toFixed(2)+' kg';">
+      </div>
+      <div class="metrics">
+        <div class="metric-box"><div class="label">Periode (T)</div><div class="num" id="spT">0.63<span>s</span></div></div>
+        <div class="metric-box"><div class="label">Frekuensi (f)</div><div class="num" id="spF">1.59<span>Hz</span></div></div>
+      </div>
+      <div class="callout">Persamaan Hooke: <strong>F = -k·x &nbsp;|&nbsp; T = 2π √(m / k)</strong></div>
+    `;
+  } else if (currentMod === 'wave') {
+    title.innerHTML = '〰️ Gelombang Tali Transversal';
+    sub.textContent = 'Osilasi Gelombang';
+    vp.innerHTML = '<canvas id="waveCanvas" width="700" height="380"></canvas>';
+    sb.innerHTML = `
+      <div class="field">
+        <div class="field-top"><label>Frekuensi (f)</label><span class="val" id="wvFVal">1.5 Hz</span></div>
+        <input type="range" min="0.5" max="4.0" step="0.1" value="1.5" oninput="wave.f=parseFloat(this.value);document.getElementById('wvFVal').textContent=wave.f.toFixed(1)+' Hz';">
+      </div>
+      <div class="field">
+        <div class="field-top"><label>Amplitudo (A)</label><span class="val" id="wvAVal">35 px</span></div>
+        <input type="range" min="10" max="60" step="5" value="35" oninput="wave.amp=parseInt(this.value);document.getElementById('wvAVal').textContent=wave.amp+' px';">
+      </div>
+      <div class="metrics">
+        <div class="metric-box"><div class="label">Panjang Gelombang (λ)</div><div class="num" id="wvLambda">80<span>px</span></div></div>
+        <div class="metric-box"><div class="label">Cepat Rambat (v)</div><div class="num">120<span>px/s</span></div></div>
+      </div>
+      <div class="callout">Hubungan Gelombang: <strong>v = λ · f</strong></div>
+    `;
+  } else if (currentMod === 'ohm') {
+    title.innerHTML = '⚡ Hukum Ohm & Rangkaian DC';
+    sub.textContent = 'Sirkuit Listrik';
+    vp.innerHTML = `
+      <svg viewBox="0 0 700 380">
+        <rect x="100" y="100" width="500" height="180" fill="none" stroke="#38bdf8" stroke-width="4" rx="10"/>
+        <rect x="70" y="150" width="60" height="80" rx="8" fill="#1d4ed8" stroke="#60a5fa" stroke-width="2"/>
+        <text x="100" y="195" fill="#fff" font-weight="bold" text-anchor="middle" id="ohmVoltsText">12V</text>
+        <rect x="310" y="88" width="80" height="24" rx="4" fill="#d97706" stroke="#fbbf24" stroke-width="2"/>
+        <text x="350" y="75" fill="#fbbf24" font-weight="bold" text-anchor="middle" id="ohmResText">100 Ω</text>
+        <g transform="translate(250, 160)">
+          <rect x="0" y="0" width="200" height="90" rx="10" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+          <text x="100" y="45" fill="#34d399" font-size="22" font-family="monospace" font-weight="bold" text-anchor="middle" id="ohmMeter">120.0 mA</text>
+          <text x="100" y="70" fill="#94a3b8" font-size="11" text-anchor="middle">Kuat Arus (I = V / R)</text>
+        </g>
+      </svg>
+    `;
+    sb.innerHTML = `
+      <div class="field">
+        <div class="field-top"><label>Tegangan (V)</label><span class="val" id="ohmVVal">12 V</span></div>
+        <input type="range" min="1" max="24" step="1" value="12" oninput="ohm.V=parseInt(this.value);document.getElementById('ohmVVal').textContent=ohm.V+' V';updateOhm();">
+      </div>
+      <div class="field">
+        <div class="field-top"><label>Hambatan Resistor (R)</label><span class="val" id="ohmRVal">100 Ω</span></div>
+        <input type="range" min="20" max="500" step="10" value="100" oninput="ohm.R=parseInt(this.value);document.getElementById('ohmRVal').textContent=ohm.R+' Ω';updateOhm();">
+      </div>
+      <div class="metrics">
+        <div class="metric-box"><div class="label">Kuat Arus (I)</div><div class="num" id="ohmI">120<span>mA</span></div></div>
+        <div class="metric-box"><div class="label">Daya Disipasi (P)</div><div class="num" id="ohmP">1.44<span>W</span></div></div>
+      </div>
+      <div class="callout">Hukum Ohm: <strong>V = I · R &nbsp;|&nbsp; P = V · I</strong></div>
+    `;
+    updateOhm();
+  } else if (currentMod === 'optics') {
+    title.innerHTML = '🔭 Hukum Pembiasan Snellius';
+    sub.textContent = 'Optik Geometris';
+    vp.innerHTML = `
+      <svg viewBox="0 0 700 380" id="opticsSvg">
+        <rect x="0" y="0" width="700" height="190" fill="rgba(255,255,255,0.04)"/>
+        <rect x="0" y="190" width="700" height="190" fill="rgba(56,189,248,0.2)"/>
+        <line x1="0" y1="190" x2="700" y2="190" stroke="#7894b7" stroke-width="2"/>
+        <line x1="350" y1="20" x2="350" y2="360" stroke="#94a3b8" stroke-dasharray="4 4"/>
+        <line id="optInc" x1="150" y1="50" x2="350" y2="190" stroke="#ef4444" stroke-width="3"/>
+        <line id="optRef" x1="350" y1="190" x2="470" y2="330" stroke="#ef4444" stroke-width="3"/>
+        <text x="30" y="40" fill="#93c5fd" font-weight="bold">Medium 1: Udara (n₁=1.00)</text>
+        <text x="30" y="230" fill="#a7f3d0" font-weight="bold" id="optMed2">Medium 2: Air (n₂=1.33)</text>
+      </svg>
+    `;
+    sb.innerHTML = `
+      <div class="field">
+        <div class="field-top"><label>Sudut Datang Laser (θ₁)</label><span class="val" id="optAVal">45°</span></div>
+        <input type="range" min="5" max="80" step="1" value="45" oninput="optics.theta1=parseInt(this.value);document.getElementById('optAVal').textContent=optics.theta1+'°';updateOptics();">
+      </div>
+      <div class="field">
+        <label style="font-size:12px;margin-bottom:4px;display:block;">Pilih Medium 2:</label>
+        <select onchange="optics.n2=parseFloat(this.value);updateOptics();">
+          <option value="1.33">Air (n = 1.33)</option>
+          <option value="1.52">Kaca (n = 1.52)</option>
+          <option value="2.42">Intan (n = 2.42)</option>
+        </select>
+      </div>
+      <div class="metrics">
+        <div class="metric-box"><div class="label">Sudut Bias (θ₂)</div><div class="num" id="optTheta2">32.1<span>°</span></div></div>
+        <div class="metric-box"><div class="label">Indeks Bias n₂</div><div class="num" id="optN2">1.33<span></span></div></div>
+      </div>
+      <div class="callout">Hukum Snellius: <strong>n₁ · sin(θ₁) = n₂ · sin(θ₂)</strong></div>
+    `;
+    updateOptics();
+  } else if (currentMod === 'calorimeter') {
+    title.innerHTML = '🌡️ Kalorimeter Panas & Asas Black';
+    sub.textContent = 'Termodinamika';
+    vp.innerHTML = `
+      <svg viewBox="0 0 700 380">
+        <rect x="230" y="80" width="240" height="240" rx="14" fill="#1e293b" stroke="#475569" stroke-width="3"/>
+        <rect x="250" y="160" width="200" height="150" fill="rgba(56,189,248,0.35)"/>
+        <rect x="320" y="240" width="60" height="40" rx="4" fill="#b45309" stroke="#cbd5e1" stroke-width="2"/>
+        <g transform="translate(280, 50)">
+          <rect x="0" y="0" width="8" height="230" rx="4" fill="#e2e8f0"/>
+          <circle cx="4" cy="235" r="8" fill="#ef4444"/>
+          <text x="20" y="80" fill="#f87171" font-weight="bold" id="calTempText">25.0°C</text>
+        </g>
+      </svg>
+    `;
+    sb.innerHTML = `
+      <div class="field">
+        <div class="field-top"><label>Massa Logam Panas</label><span class="val">150 g</span></div>
+        <input type="range" min="50" max="300" step="10" value="150" oninput="cal.mm=this.value/1000;">
+      </div>
+      <div class="field">
+        <div class="field-top"><label>Suhu Awal Logam</label><span class="val">95°C</span></div>
+        <input type="range" min="50" max="120" step="5" value="95" oninput="cal.tm=parseInt(this.value);">
+      </div>
+      <div class="metrics">
+        <div class="metric-box"><div class="label">Suhu Kesetimbangan (Tf)</div><div class="num" id="calTf">28.8<span>°C</span></div></div>
+        <div class="metric-box"><div class="label">Status</div><div class="num" style="font-size:14px;color:var(--green)">Seimbang</div></div>
+      </div>
+      <div class="callout">Asas Black: <strong>Q_lepas = Q_terima</strong></div>
+    `;
+  } else if (currentMod === 'caliper') {
+    title.innerHTML = '📏 Jangka Sorong Interaktif (0.05 mm)';
+    sub.textContent = 'Alat Ukur Presisi';
+    vp.innerHTML = `
+      <svg viewBox="0 0 700 380" id="caliperSvg">
+        <!-- Main Fixed Scale -->
+        <rect x="80" y="150" width="540" height="70" fill="#94a3b8" stroke="#475569" stroke-width="2"/>
+        <path d="M 50 150 L 50 280 L 80 280 L 80 220 L 80 150 Z" fill="#64748b"/>
+        <!-- Movable Vernier Jaw -->
+        <g id="caliperJaw" transform="translate(130, 0)">
+          <path d="M 80 150 L 80 280 L 110 280 L 110 220 L 170 220 L 170 150 Z" fill="#cbd5e1" stroke="#334155" stroke-width="2"/>
+        </g>
+        <rect id="caliperBlock" x="80" y="230" width="130" height="40" fill="rgba(94,231,247,0.3)" stroke="#5ee7f7"/>
+      </svg>
+    `;
+    sb.innerHTML = `
+      <div class="field">
+        <div class="field-top"><label>Bukaan Rahang Ukur</label><span class="val" id="caliperValText">18.35 mm</span></div>
+        <input type="range" min="0" max="45" step="0.05" value="18.35" oninput="caliper.val=parseFloat(this.value);updateCaliper();">
+      </div>
+      <div class="callout">
+        Hasil Bacaan:<br>
+        1. Skala Utama: <strong id="calMain">18.00 mm</strong><br>
+        2. Skala Nonius: <strong id="calVern">0.35 mm</strong><br>
+        Total: <strong style="color:var(--cyan);font-size:15px;" id="calTotal">18.35 mm</strong>
+      </div>
+    `;
+    updateCaliper();
+  }
+}
+
+function updatePendulum() {
+  const p = pendulum;
+  const T = 2 * Math.PI * Math.sqrt(p.L / p.g);
+  const pEl = document.getElementById('pPeriod');
+  if (pEl) pEl.innerHTML = T.toFixed(2) + '<span>s</span>';
+
+  const angleRad = p.angle * Math.PI / 180 * Math.cos(2 * Math.PI * p.time / T);
+  const pxLen = 100 + (p.L / 2.0) * 160;
+  const bx = 350 + pxLen * Math.sin(angleRad);
+  const by = 70 + pxLen * Math.cos(angleRad);
+
+  const str = document.getElementById('pendString');
+  const bob = document.getElementById('pendBob');
+  if (str) {
+    str.setAttribute('x2', bx);
+    str.setAttribute('y2', by);
+  }
+  if (bob) {
+    bob.setAttribute('cx', bx);
+    bob.setAttribute('cy', by);
+  }
+  const tEl = document.getElementById('pTime');
+  if (tEl) tEl.innerHTML = p.time.toFixed(2) + '<span>s</span>';
+}
+
+function updateOhm() {
+  const I = ohm.V / ohm.R;
+  const P = ohm.V * I;
+  const vt = document.getElementById('ohmVoltsText');
+  const rt = document.getElementById('ohmResText');
+  const meter = document.getElementById('ohmMeter');
+  const iEl = document.getElementById('ohmI');
+  const pEl = document.getElementById('ohmP');
+  if (vt) vt.textContent = ohm.V + 'V';
+  if (rt) rt.textContent = ohm.R + ' Ω';
+  if (meter) meter.textContent = (I * 1000).toFixed(1) + ' mA';
+  if (iEl) iEl.innerHTML = (I * 1000).toFixed(1) + '<span>mA</span>';
+  if (pEl) pEl.innerHTML = P.toFixed(2) + '<span>W</span>';
+}
+
+function updateOptics() {
+  const th1Rad = optics.theta1 * Math.PI / 180;
+  const th2Rad = Math.asin(Math.min(1, (1.0 / optics.n2) * Math.sin(th1Rad)));
+  const th2Deg = (th2Rad * 180 / Math.PI).toFixed(1);
+
+  const len = 200;
+  const x1 = 350 - len * Math.sin(th1Rad);
+  const y1 = 190 - len * Math.cos(th1Rad);
+  const x2 = 350 + len * Math.sin(th2Rad);
+  const y2 = 190 + len * Math.cos(th2Rad);
+
+  const inc = document.getElementById('optInc');
+  const ref = document.getElementById('optRef');
+  if (inc) { inc.setAttribute('x1', x1); inc.setAttribute('y1', y1); }
+  if (ref) { ref.setAttribute('x2', x2); ref.setAttribute('y2', y2); }
+
+  const th2El = document.getElementById('optTheta2');
+  const n2El = document.getElementById('optN2');
+  if (th2El) th2El.innerHTML = th2Deg + '<span>°</span>';
+  if (n2El) n2El.innerHTML = optics.n2.toFixed(2);
+}
+
+function updateCaliper() {
+  const shift = caliper.val * 6;
+  const jaw = document.getElementById('caliperJaw');
+  const block = document.getElementById('caliperBlock');
+  if (jaw) jaw.setAttribute('transform', `translate(${shift}, 0)`);
+  if (block) block.setAttribute('width', Math.max(0, shift));
+
+  const main = Math.floor(caliper.val);
+  const vern = (caliper.val - main).toFixed(2);
+
+  const vt = document.getElementById('caliperValText');
+  const cm = document.getElementById('calMain');
+  const cv = document.getElementById('calVern');
+  const ct = document.getElementById('calTotal');
+  if (vt) vt.textContent = caliper.val.toFixed(2) + ' mm';
+  if (cm) cm.textContent = main + '.00 mm';
+  if (cv) cv.textContent = vern + ' mm';
+  if (ct) ct.textContent = caliper.val.toFixed(2) + ' mm';
+}
+
+// --- Simulation Loop ---
+let lastTime = 0;
+function mainLoop(timestamp) {
+  if (!lastTime) lastTime = timestamp;
+  const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+  lastTime = timestamp;
+
+  if (running) {
+    if (currentMod === 'pendulum') {
+      pendulum.time += dt;
+      updatePendulum();
+    } else if (currentMod === 'projectile') {
+      projectile.t += dt;
+      const aRad = projectile.angle * Math.PI / 180;
+      const vx = projectile.v * Math.cos(aRad);
+      const vy = projectile.v * Math.sin(aRad);
+      projectile.x = vx * projectile.t;
+      projectile.y = Math.max(0, vy * projectile.t - 0.5 * 9.81 * projectile.t * projectile.t);
+
+      const px = 50 + projectile.x * 10;
+      const py = 340 - projectile.y * 10;
+      const ball = document.getElementById('projBall');
+      if (ball) { ball.setAttribute('cx', px); ball.setAttribute('cy', py); }
+
+      if (projectile.y <= 0 && projectile.t > 0.1) {
+        running = false;
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('pauseBtn').disabled = true;
+      }
+    } else if (currentMod === 'wave') {
+      wave.t += dt;
+      const cv = document.getElementById('waveCanvas');
+      if (cv) {
+        const ctx = cv.getContext('2d');
+        ctx.clearRect(0, 0, cv.width, cv.height);
+        ctx.beginPath();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#5ee7f7';
+        for (let x = 0; x <= cv.width; x += 4) {
+          const k = 2 * Math.PI / (wave.v / wave.f);
+          const y = 190 + wave.amp * Math.sin(k * x - 2 * Math.PI * wave.f * wave.t);
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+    }
+  }
+
+  animId = requestAnimationFrame(mainLoop);
+}
+
+function onStart() {
+  playBeep(650, 0.05);
+  running = true;
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('pauseBtn').disabled = false;
+}
+function onPause() {
+  playBeep(450, 0.05);
+  running = false;
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('pauseBtn').disabled = true;
+}
+function onReset() {
+  playBeep(350, 0.05);
+  running = false;
+  pendulum.time = 0;
+  projectile.t = 0;
+  projectile.x = 0;
+  projectile.y = 0;
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('pauseBtn').disabled = true;
+  if (currentMod === 'pendulum') updatePendulum();
+}
+
+// Start
+initModuleUI();
+animId = requestAnimationFrame(mainLoop);
+</script>
+</body>
+</html>
